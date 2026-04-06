@@ -2,6 +2,8 @@
 #include <string>
 using namespace std;
 
+const int MAX = 100;
+
 struct Hewan {
     int id;
     string nama;
@@ -9,7 +11,6 @@ struct Hewan {
     double harga;
 };
 
-// Pointer Aritmatika
 void tampilData(Hewan* arr, int n) {
     cout << "\n=== Data Hewan Pawcare Petshop ===\n";
     for (int i = 0; i < n; i++) {
@@ -21,12 +22,13 @@ void tampilData(Hewan* arr, int n) {
     }
 }
 
-// Tambah Data
 void tambahData(Hewan* arr, int& n) {
     cout << "\nMasukkan ID: "; cin >> arr[n].id;
-    cout << "Masukkan Nama: "; cin.ignore(); getline(cin, arr[n].nama);
+    cin.ignore(10000, '\n');
+    cout << "Masukkan Nama: "; getline(cin, arr[n].nama);
     cout << "Masukkan Jenis: "; getline(cin, arr[n].jenis);
     cout << "Masukkan Harga: "; cin >> arr[n].harga;
+    cin.ignore(10000, '\n');
     n++;
 }
 
@@ -42,7 +44,6 @@ void cariNamaLinear(Hewan* arr, int n, string key) {
     cout << "Nama tidak ditemukan.\n";
 }
 
-// Fibonacci Search
 int fibonacciSearch(Hewan* arr, int n, int key) {
     int fib2 = 0, fib1 = 1, fib = fib2 + fib1;
     while (fib < n) {
@@ -53,8 +54,7 @@ int fibonacciSearch(Hewan* arr, int n, int key) {
     int offset = -1;
     while (fib > 1) {
         int i = offset + fib2;
-        if (i >= n) i = n - 1; 
-
+        if (i >= n) i = n - 1;
         if (arr[i].id < key) {
             fib = fib1;
             fib1 = fib2;
@@ -70,13 +70,12 @@ int fibonacciSearch(Hewan* arr, int n, int key) {
     return -1;
 }
 
-// Bubble Sort
 void bubbleSortNama(Hewan* arr, int n) {
     for (int i = 0; i < n-1; i++) {
         for (int j = 0; j < n-i-1; j++) {
             if ((arr+j)->nama > (arr+j+1)->nama) {
-                Hewan* a = arr+j;
-                Hewan* b = arr+j+1;
+                Hewan* a = arr + j;
+                Hewan* b = arr + j + 1;
                 Hewan temp = *a;
                 *a = *b;
                 *b = temp;
@@ -85,47 +84,48 @@ void bubbleSortNama(Hewan* arr, int n) {
     }
 }
 
-// Selection Sort
 void selectionSortHarga(Hewan* arr, int n) {
     for (int i = 0; i < n-1; i++) {
         int minIdx = i;
         for (int j = i+1; j < n; j++) {
-            if ((arr+j)->harga < (arr+minIdx)->harga) {
-                minIdx = j;
-            }
+            if ((arr+j)->harga < (arr+minIdx)->harga) minIdx = j;
         }
-        Hewan* a = arr+i;
-        Hewan* b = arr+minIdx;
+        Hewan* a = arr + i;
+        Hewan* b = arr + minIdx;
         Hewan temp = *a;
         *a = *b;
         *b = temp;
     }
 }
 
-// ===== Queue (Antrian Pasien) =====
 struct Queue {
-    Hewan data[100];
+    Hewan data[MAX];
     int front = 0, rear = -1, count = 0;
 };
 
 bool isEmptyQueue(Queue* q) { return q->count == 0; }
-bool isFullQueue(Queue* q) { return q->count == 100; }
+bool isFullQueue(Queue* q) { return q->count == MAX; }
 
 void enqueue(Queue* q, Hewan h) {
     if (isFullQueue(q)) { cout << "Antrian penuh!\n"; return; }
-    q->rear = (q->rear + 1) % 100;
+    for (int i = 0; i < q->count; i++) {
+        Hewan* p = &q->data[(q->front + i) % MAX];
+        if (p->id == h.id) {
+            cout << "Hewan " << h.nama << " (ID " << h.id << ") sudah ada di antrian.\n";
+            return;
+        }
+    }
+    q->rear = (q->rear + 1) % MAX;
     q->data[q->rear] = h;
     q->count++;
     cout << "Hewan " << h.nama << " masuk antrian.\n";
 }
 
 Hewan dequeue(Queue* q) {
-    if (isEmptyQueue(q)) {
-        cout << "Antrian kosong!\n";
-        return {-1, "", "", 0};
-    }
+    Hewan kosong; kosong.id = -1; kosong.nama = ""; kosong.jenis = ""; kosong.harga = 0;
+    if (isEmptyQueue(q)) { cout << "Antrian kosong!\n"; return kosong; }
     Hewan h = q->data[q->front];
-    q->front = (q->front + 1) % 100;
+    q->front = (q->front + 1) % MAX;
     q->count--;
     cout << "Memanggil pasien: " << h.nama << " (ID " << h.id << ")\n";
     return h;
@@ -135,24 +135,24 @@ void tampilAntrian(Queue* q) {
     if (isEmptyQueue(q)) { cout << "Antrian kosong.\n"; return; }
     cout << "\n=== Antrian Pasien ===\n";
     for (int i = 0; i < q->count; i++) {
-        Hewan* p = &q->data[(q->front + i) % 100];
+        Hewan* p = &q->data[(q->front + i) % MAX];
         cout << "ID: " << p->id << " | Nama: " << p->nama << endl;
     }
 }
 
 Hewan peekQueue(Queue* q) {
-    if (isEmptyQueue(q)) return {-1, "", "", 0};
+    Hewan kosong; kosong.id = -1; kosong.nama = ""; kosong.jenis = ""; kosong.harga = 0;
+    if (isEmptyQueue(q)) return kosong;
     return q->data[q->front];
 }
 
-// ===== Stack (Riwayat Tindakan) =====
 struct Stack {
-    Hewan data[100];
+    Hewan data[MAX];
     int top = -1;
 };
 
 bool isEmptyStack(Stack* s) { return s->top == -1; }
-bool isFullStack(Stack* s) { return s->top == 99; }
+bool isFullStack(Stack* s) { return s->top == MAX - 1; }
 
 void push(Stack* s, Hewan h) {
     if (isFullStack(s)) { cout << "Riwayat penuh!\n"; return; }
@@ -162,8 +162,15 @@ void push(Stack* s, Hewan h) {
 
 void pop(Stack* s) {
     if (isEmptyStack(s)) { cout << "Riwayat kosong!\n"; return; }
-    cout << "Menghapus riwayat: " << s->data[s->top].nama << endl;
-    s->top--;
+    cout << "Yakin ingin menghapus riwayat terakhir (" << s->data[s->top].nama << ")? (Y/N): ";
+    char jawaban; cin >> jawaban;
+    cin.ignore(10000, '\n');
+    if (jawaban == 'Y' || jawaban == 'y') {
+        cout << "Menghapus riwayat: " << s->data[s->top].nama << endl;
+        s->top--;
+    } else {
+        cout << "Pembatalan penghapusan riwayat.\n";
+    }
 }
 
 void tampilRiwayat(Stack* s) {
@@ -176,12 +183,13 @@ void tampilRiwayat(Stack* s) {
 }
 
 Hewan peekStack(Stack* s) {
-    if (isEmptyStack(s)) return {-1, "", "", 0};
+    Hewan kosong; kosong.id = -1; kosong.nama = ""; kosong.jenis = ""; kosong.harga = 0;
+    if (isEmptyStack(s)) return kosong;
     return s->data[s->top];
 }
 
 int main() {
-    Hewan daftar[100];
+    Hewan daftar[MAX];
     int n = 0;
     int pilihan;
     Queue antrian;
@@ -214,7 +222,8 @@ int main() {
         if (pilihan == 1) tampilData(daftar, n);
         else if (pilihan == 2) tambahData(daftar, n);
         else if (pilihan == 3) {
-            string key; cout << "Masukkan nama: "; cin.ignore(); getline(cin, key);
+            cin.ignore(10000, '\n');
+            string key; cout << "Masukkan nama: "; getline(cin, key);
             cariNamaLinear(daftar, n, key);
         }
         else if (pilihan == 4) {
